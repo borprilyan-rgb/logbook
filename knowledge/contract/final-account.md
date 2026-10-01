@@ -1,6 +1,12 @@
 ---
 title: Final Account
 category: Contract
+subcategory: Close-out
+updated: 2026-10-01
+status: learning
+difficulty: intermediate
+importance: high
+sourceType: learning-note
 tags:
   - contract
   - cost

@@ -1,22 +1,98 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { entries } from '../data/entries.js';
-import { categoryNames, searchEntries, slugify } from '../utils/knowledge.js';
-import Link from '../components/Link.jsx';
-import EntryCard from '../components/EntryCard.jsx';
+import React from "react";
+import { knowledgeRepository as repository } from "../data/knowledgeRepository.js";
+import SearchBox from "../components/SearchBox.jsx";
+import Filters, { filterKeys } from "../components/Filters.jsx";
+import EntryList from "../components/EntryList.jsx";
+import { navigate, updateParams } from "../utils/navigation.js";
 
-const descriptions = ['Strength, placement & durability', 'Procurement & tender documentation', 'Changes, obligations & close-out', 'Quantities, rules & schedules', 'Properties & specifications', 'Methods & construction details', 'Rates, allowances & budgets'];
-export default function Library({ category, home, initialQuery }) {
-  const [query, setQuery] = useState(initialQuery);
-  const input = useRef(null);
-  useEffect(() => setQuery(initialQuery), [initialQuery, category, home]);
-  useEffect(() => { const shortcut = event => { if ((event.ctrlKey || event.metaKey) && event.key === 'k') { event.preventDefault(); input.current?.focus(); } }; window.addEventListener('keydown', shortcut); return () => window.removeEventListener('keydown', shortcut); }, []);
-  const results = useMemo(() => searchEntries(entries, query, category), [query, category]);
-  const searching = !!query.trim();
-  function changeQuery(value) { setQuery(value); const url = new URL(window.location.href); if (value) url.searchParams.set('q', value); else url.searchParams.delete('q'); window.history.replaceState({}, '', url.pathname + url.search); }
-  return <div className="page library-page"><div className="eyebrow">YOUR CONSTRUCTION REFERENCE</div><div className="page-heading"><div><h1>{category || (home ? 'A little knowledge. A stronger foundation.' : 'All knowledge entries')}</h1><p>{category ? descriptions[categoryNames.indexOf(category)] : 'Capture what you learn. Connect the details. Build on what you know.'}</p></div><span className="edition">FIELDNOTES <br /><b>VOL. 01</b></span></div>
-    <div className="search-box"><span aria-hidden="true" className="search-icon">⌕</span><input ref={input} aria-label="Search knowledge entries" value={query} onChange={event => changeQuery(event.target.value)} placeholder={category ? `Search in ${category.toLowerCase()}…` : 'Search concepts, terms, tags, or questions…'} />{query ? <button aria-label="Clear search" onClick={() => changeQuery('')}>×</button> : <kbd>Ctrl K</kbd>}</div><div className="search-hint">Search across titles, summaries, tags, and full notes<span>{entries.length} entries in your library</span></div>
-    {home && !searching && <><div className="section-heading"><h2>Browse by category</h2><span>FIND YOUR STARTING POINT</span></div><div className="category-grid">{categoryNames.map((name, index) => { const count = entries.filter(entry => entry.category === name).length; return <Link className="category-card" key={name} href={`/category/${slugify(name)}`}><div><span className={`category-symbol dot-${index}`}>{['▦', '▤', '§', '⌁', '◇', '⊞', '∑'][index]}</span><span className="category-count">{count} {count === 1 ? 'entry' : 'entries'}</span></div><h3>{name}</h3><p>{descriptions[index]}</p></Link>; })}</div></>}
-    <section aria-live="polite"><div className="section-heading"><h2>{searching ? `Search results (${results.length})` : category ? `${category} entries` : home ? 'Recently added' : 'The complete library'}</h2>{home && !searching ? <Link href="/library">View all entries →</Link> : <span>{results.length} {results.length === 1 ? 'ENTRY' : 'ENTRIES'}</span>}</div>{results.length ? <div className="entries-grid">{(home && !searching ? results.slice(0, 6) : results).map(entry => <EntryCard key={entry.id} entry={entry} />)}</div> : <div className="empty"><h3>{searching ? 'No matching entries' : 'Room for new knowledge'}</h3><p>{searching ? 'Try a broader term, a tag, or another category.' : 'Add a Markdown file to this category to start building your reference.'}</p>{searching && <button onClick={() => changeQuery('')}>Clear search</button>}</div>}</section>
-    {home && !searching && <section className="reference-section"><div className="section-heading"><h2>Frequently referenced topics</h2><span>PINNED REFERENCE NOTES</span></div><div className="reference-list">{entries.filter(entry => entry.featured).map((entry, index) => <Link href={`/entry/${entry.id}`} key={entry.id}><span className="reference-number">0{index + 1}</span><div><h3>{entry.title}</h3><p>{entry.summary}</p></div><span className="reference-category">{entry.category}</span><span>↗</span></Link>)}</div><div className="notebook-note"><span>✳</span><div><h3>A notebook, built one entry at a time.</h3><p>Small observations become useful references. Keep adding what you learn.</p></div><span className="note-label">CONTINUOUS LEARNING</span></div></section>}
-  </div>;
+export default function Library({ url, category, mode, personal, toggle }) {
+  const params = url.searchParams;
+  const query = params.get("q") || "";
+  const filters = Object.fromEntries(
+    filterKeys.map((key) => [key, params.get(key) || ""]),
+  );
+  if (category) filters.category = category;
+  if (mode === "review") filters.needsReview = true;
+  const requestedSort = params.get("sort");
+  const sort = [
+    "title",
+    "created",
+    "updated",
+    "importance",
+    "category",
+    "relevance",
+  ].includes(requestedSort)
+    ? requestedSort
+    : undefined;
+  let results = repository.searchEntries(query, filters, sort);
+  if (mode === "bookmarks")
+    results = results.filter((entry) => personal.bookmarks.includes(entry.id));
+  const change = (changes) => {
+    const next = updateParams(params, changes);
+    navigate(url.pathname + (next.size ? `?${next}` : ""), true);
+  };
+  const title = category
+    ? `${category} entries`
+    : mode === "review"
+      ? "Needs Review"
+      : mode === "bookmarks"
+        ? "Bookmarks"
+        : "Knowledge Library";
+  const hasFilters =
+    query || filterKeys.some((key) => key !== "project" && params.has(key));
+  return (
+    <div className="page library-page">
+      <div className="eyebrow">REFERENCE LIBRARY</div>
+      <div className="page-heading">
+        <div>
+          <h1>{title}</h1>
+          <p>
+            {mode === "review"
+              ? "Draft and learning notes to develop into reliable references."
+              : mode === "bookmarks"
+                ? "Your saved references, stored on this device."
+                : "Find concepts, compare details, and return to useful knowledge."}
+          </p>
+        </div>
+      </div>
+      <SearchBox value={query} onChange={(value) => change({ q: value })} />
+      <Filters params={params} fixedCategory={category} onChange={change} />
+      <div className="results-toolbar">
+        <span aria-live="polite">
+          {results.length} {results.length === 1 ? "entry" : "entries"}
+          {hasFilters ? " matching your search and filters" : ""}
+        </span>
+        <label>
+          Sort by{" "}
+          <select
+            value={sort || (query.trim() ? "relevance" : "updated")}
+            onChange={(event) => change({ sort: event.target.value })}
+          >
+            <option value="relevance">Relevance</option>
+            <option value="updated">Recently updated</option>
+            <option value="created">Newest created</option>
+            <option value="title">Title</option>
+            <option value="importance">Importance</option>
+            <option value="category">Category</option>
+          </select>
+        </label>
+      </div>
+      <EntryList
+        entries={results}
+        toggle={toggle}
+        bookmarks={personal.bookmarks}
+        empty={
+          hasFilters
+            ? "No knowledge entries found. Try fewer filters or a broader search."
+            : mode === "bookmarks"
+              ? "No bookmarked entries yet. Use the star beside an entry to save it."
+              : mode === "review"
+                ? "No notes need review. Draft and learning notes will appear here."
+                : params.get("project")
+                  ? "No entries are associated with this project."
+                  : "No knowledge entries found. Add a Markdown note to this category."
+        }
+      />
+    </div>
+  );
 }

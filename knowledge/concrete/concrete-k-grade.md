@@ -1,6 +1,16 @@
 ---
 title: Concrete K Grade
 category: Concrete
+subcategory: Concrete Strength
+updated: 2026-10-01
+status: learning
+difficulty: intermediate
+importance: high
+sourceType: learning-note
+aliases:
+  - K Beton
+  - Mutu Beton
+  - K-350
 tags:
   - concrete
   - strength

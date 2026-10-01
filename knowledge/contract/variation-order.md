@@ -1,6 +1,14 @@
 ---
 title: Variation Order
 category: Contract
+subcategory: Change Management
+updated: 2026-10-01
+status: learning
+difficulty: intermediate
+importance: high
+sourceType: learning-note
+aliases:
+  - VO
 tags:
   - contract
   - cost

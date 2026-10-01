@@ -1,6 +1,14 @@
 ---
 title: Slump
 category: Concrete
+subcategory: Fresh Concrete
+updated: 2026-10-01
+status: learning
+difficulty: basic
+importance: high
+sourceType: learning-note
+standards:
+  - ASTM C143/C143M
 tags:
   - concrete
   - workability
@@ -36,3 +44,5 @@ If a delivery falls outside the specified slump range, follow the approved quali
 ## Sources
 
 Starter reference note. Consult the project specification and approved concrete testing procedure.
+
+- [ASTM C143/C143M publisher information](https://store.astm.org/c0143_c0143m-26a.html). Check the edition required by your specification; this catalogue reference does not make the note verified.

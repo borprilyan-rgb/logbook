@@ -1,6 +1,12 @@
 ---
 title: Concrete Curing
 category: Concrete
+subcategory: Concrete Practice
+updated: 2026-10-01
+status: learning
+difficulty: basic
+importance: high
+sourceType: learning-note
 tags:
   - concrete
   - strength

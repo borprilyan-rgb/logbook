@@ -1,6 +1,15 @@
 ---
 title: BOQ
 category: Measurement
+subcategory: Bills of Quantities
+updated: 2026-10-01
+status: learning
+difficulty: basic
+importance: high
+sourceType: learning-note
+aliases:
+  - Bill of Quantities
+  - Bill of Quantity
 tags:
   - measurement
   - tender

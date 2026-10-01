@@ -1,6 +1,12 @@
 ---
 title: Control Joint vs Expansion Joint
 category: Site Work
+subcategory: Concrete Joints
+updated: 2026-10-01
+status: learning
+difficulty: intermediate
+importance: medium
+sourceType: learning-note
 tags:
   - concrete
   - joints
